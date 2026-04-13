@@ -15,7 +15,7 @@ This document is the **umbrella guide** for the repository layout, how the piece
 5. [Local development (startup order)](#local-development-startup-order)
 6. [Ports and defaults](#ports-and-defaults)
 7. [Environment configuration](#environment-configuration)
-8. [Splitting into separate Git repositories](#splitting-into-separate-git-repositories)
+8. [Submodule workflow (already configured)](#submodule-workflow-already-configured)
 9. [Project-level documentation](#project-level-documentation)
 10. [Other folders in this workspace](#other-folders-in-this-workspace)
 11. [Troubleshooting](#troubleshooting)
@@ -34,18 +34,32 @@ The production system is composed of **four first-class components**. In this mo
 | **Transcoder** | [`DaPlex-Transcoder/`](./DaPlex-Transcoder/) | NestJS (Fastify) worker: BullMQ consumer, FFmpeg-oriented media processing. |
 | **Redis** | [`Redis/`](./Redis/) | Local **Windows** Redis binaries + `redis.conf` for development (not a Node package). |
 
-### Suggested Git remote URLs (fill in your org/user)
+### GitHub repositories (this workspace)
 
-When you host each component in its **own** GitHub/GitLab repository, use a consistent naming scheme and point your remotes here (examples—replace `YOUR_ORG`):
+This root folder is the **umbrella** repo; application code lives in **git submodules** (see [`.gitmodules`](./.gitmodules)).
 
-| Component | Suggested repo name | Example `git remote add origin` |
-|-----------|---------------------|----------------------------------|
-| Web | `daplex-dune-v2` | `https://github.com/YOUR_ORG/daplex-dune-v2.git` |
-| API | `DaPlex-API` | `https://github.com/YOUR_ORG/DaPlex-API.git` |
-| Transcoder | `DaPlex-Transcoder` | `https://github.com/YOUR_ORG/DaPlex-Transcoder.git` |
-| Redis (optional) | `daplex-redis-local` | `https://github.com/YOUR_ORG/daplex-redis-local.git` *(often omitted from VCS; use Docker/managed Redis in prod)* |
+| Component | Repository |
+|-----------|-------------|
+| **Umbrella** (this README + layout) | [github.com/yacucdeptrai/DaPlex](https://github.com/yacucdeptrai/DaPlex) |
+| **Web** | [github.com/yacucdeptrai/daplex-dune-v2](https://github.com/yacucdeptrai/daplex-dune-v2) |
+| **API** | [github.com/yacucdeptrai/DaPlex-API](https://github.com/yacucdeptrai/DaPlex-API) |
+| **Transcoder** | [github.com/yacucdeptrai/DaPlex-Transcoder](https://github.com/yacucdeptrai/DaPlex-Transcoder) |
+| **Redis** (configs only; `.exe`/`.dll` gitignored) | [github.com/yacucdeptrai/DaPlex-Redis](https://github.com/yacucdeptrai/DaPlex-Redis) |
 
-**Meta / umbrella** (this folder): e.g. `https://github.com/YOUR_ORG/DaPlex.git` — contains only docs, optional submodule pointers, and shared tooling—not application source copied from the four components above.
+**Clone everything (submodules):**
+
+```bash
+git clone --recursive https://github.com/yacucdeptrai/DaPlex.git
+cd DaPlex
+```
+
+If you already cloned without `--recursive`:
+
+```bash
+git submodule update --init --recursive
+```
+
+**Redis on a fresh clone:** the submodule ships **config and docs** only. Copy `redis-server.exe`, `redis-cli.exe`, and required `.dll` files into `Redis/` from an official Windows build (or keep your existing folder) before running [`Redis/README.md`](./Redis/README.md) commands.
 
 ---
 
@@ -179,23 +193,20 @@ Never commit real secrets. Use `.env.example` patterns in each repo if you add t
 
 ---
 
-## Splitting into separate Git repositories
+## Submodule workflow (already configured)
 
-This workspace can stay a **single monorepo**, or you can **extract** each folder into its own remote:
-
-1. Create empty repos on GitHub (e.g. `daplex-dune-v2`, `DaPlex-API`, `DaPlex-Transcoder`; optionally `daplex-redis-local` or skip Redis in VCS).
-2. From each folder, `git init` (if needed), commit, `git remote add origin <url>`, `git push -u origin main`.
-3. Optional **umbrella** repo: clone an empty `DaPlex` meta-repo and add **git submodules**:
+The umbrella repo **tracks pinned commits** for each submodule. After you change code inside a submodule, **commit and push inside that repo**, then in the **umbrella** repo:
 
 ```bash
-git submodule add https://github.com/YOUR_ORG/daplex-dune-v2.git daplex-dune-v2
-git submodule add https://github.com/YOUR_ORG/DaPlex-API.git DaPlex-API
-git submodule add https://github.com/YOUR_ORG/DaPlex-Transcoder.git DaPlex-Transcoder
-# Optional: Redis runtime
-# git submodule add https://github.com/YOUR_ORG/daplex-redis-local.git Redis
+cd DaPlex
+git submodule update --remote --merge   # optional: pull latest tracked branch
+# or: cd daplex-dune-v2 && git pull && cd ..
+git add daplex-dune-v2   # or DaPlex-API, DaPlex-Transcoder, Redis
+git commit -m "Bump submodule(s)"
+git push
 ```
 
-Clone with submodules: `git clone --recursive <umbrella-url>`.
+To add this layout on a **fork** under another org, mirror the same submodule URLs in `.gitmodules` or replace them with your forks and run `git submodule sync`.
 
 ---
 
