@@ -1,0 +1,9 @@
+# Umbrella repo — do not track auxiliary tooling and large binaries at root
+.agent/
+.cursor/
+.mcp_data/
+everything-claude-code/
+FFmpeg-Builds-SVT-AV1-HDR/
+ffmpeg/
+ffmpeg-n8.1-latest-win64-nonfree-8.1.zip
+node_modules.rar

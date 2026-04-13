@@ -1,0 +1,12 @@
+[submodule "daplex-dune-v2"]
+	path = daplex-dune-v2
+	url = https://github.com/yacucdeptrai/daplex-dune-v2.git
+[submodule "DaPlex-API"]
+	path = DaPlex-API
+	url = https://github.com/yacucdeptrai/DaPlex-API.git
+[submodule "DaPlex-Transcoder"]
+	path = DaPlex-Transcoder
+	url = https://github.com/yacucdeptrai/DaPlex-Transcoder.git
+[submodule "Redis"]
+	path = Redis
+	url = https://github.com/yacucdeptrai/DaPlex-Redis.git
