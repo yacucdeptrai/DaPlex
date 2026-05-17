@@ -1,0 +1,10 @@
+# Generated figures (drawio exports, PNG outputs)
+figures/
+
+# Internal tooling / formatting rules
+PROMPT.md
+FORMAT.md
+
+# Word documents (binary, large)
+*.docx
+*.doc
