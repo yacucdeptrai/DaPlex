@@ -91,6 +91,8 @@ DaPlex frontend sử dụng **`@ngrx/signals`** 20.1.0 để quản lý state ph
 
 Các service như `MediaService`, `HistoryService`, `PlaylistsService`, `CollectionService` đảm nhiệm việc gọi API tương ứng và trả về `Observable<T>` — component subscribe để nhận dữ liệu và dùng `async pipe` trong template để tự động unsubscribe khi destroy. `QueueUploadService` quản lý hàng đợi upload file: khi admin chọn nhiều file cùng lúc, service xếp hàng và upload tuần tự, emit progress event qua Subject để component hiển thị thanh tiến trình real-time. `ItemDataService` phục vụ mục đích đặc biệt: truyền dữ liệu item (media metadata, episode) giữa hai route liền kề mà không cần API round-trip — khi người dùng click vào một media card, component nguồn ghi data vào service, component đích đọc lại ngay thay vì tải lại từ server.
 
+**`@ngneat/cashew`** 5.3.0 là HTTP caching layer hoạt động như `HttpCacheInterceptorModule` tích hợp vào Angular HTTP pipeline. Interceptor cache response của các GET request có `ttl` được khai báo qua `HttpContext` tại call-site — các endpoint ít thay đổi như danh sách thể loại, thông tin production, và user profile được cache trong memory với TTL ngắn (30–60 giây). Khi backend trả về dữ liệu lần đầu, cachew lưu response kèm key tổng hợp từ URL và query params; các request sau trong cùng TTL nhận response từ cache mà không gửi HTTP request thực. Cơ chế này hiệu quả đặc biệt trên các trang catalog nơi nhiều component cùng cần danh sách thể loại hay tag — chỉ một request thực sự được thực hiện, phần còn lại nhận từ cache tức thì.
+
 ---
 
 ## Cấu Trúc Chi Tiết Các Phần

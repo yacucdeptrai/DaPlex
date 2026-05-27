@@ -66,7 +66,7 @@ Mười bảy resource module trong `src/resources/` được đăng ký theo ro
 
 Thư mục `src/common/modules/` chứa các module infrastructure dùng chung bởi nhiều resource module, tổ chức theo chức năng:
 
-**Cache layer** gồm ba module Redis riêng biệt, mỗi module connect đến Redis instance độc lập để phân tách workload: `RedisCacheModule` (từ `REDIS_URL`) dùng cho primary cache như JWT payload cache, `Redis2ndCacheModule` (từ `REDIS_2ND_URL`) dùng cho rate limiting và secondary cache, `RedisPubSubModule` dùng cho pub/sub event (kết quả encode Transcoder gửi về API). Việc dùng ba connection Redis tách biệt cho phép scale và monitor từng loại workload độc lập.
+**Cache layer** gồm ba module Redis trong `common/modules/`: `RedisCacheModule` (từ `REDIS_URL`) dùng cho primary cache như JWT payload cache, `Redis2ndCacheModule` (từ `REDIS_2ND_URL`) dùng cho rate limiting và secondary cache, `RedisPubSubModule` (chia sẻ `REDIS_QUEUE_URL` với BullMQ) dùng cho pub/sub event nhận kết quả encode từ Transcoder. Cộng với `REDIS_IO_URL` cho Socket.IO adapter, toàn hệ thống dùng **bốn Redis connection** độc lập, mỗi connection phục vụ một workload riêng biệt để cho phép scale và monitor tách biệt.
 
 **External storage modules** hỗ trợ đa provider: `CloudflareR2Module`, `S3Module` (tương thích S3 API — dùng cho Backblaze B2, AWS S3, MinIO), `AzureBlobModule`, `OnedriveModule`, `DropboxModule`, `GoogleDriveModule`, `ImageKitModule`, `ImgurModule`, `FilerModule` (local filesystem). Mỗi module inject `ConfigService` để đọc credentials từ env, và expose service với interface đồng nhất (`upload`, `delete`, `getPresignedUrl`...) để `MediaService` gọi mà không cần biết provider cụ thể.
 
@@ -85,7 +85,7 @@ DaPlex-API không dùng MongoDB ObjectId mặc định mà dùng **Snowflake ID*
   title: Kiến trúc tổng thể DaPlex-API — NestJS modules, dual MongoDB, và BullMQ queues
   type: architecture-diagram
   description: >
-    Sơ đồ kiến trúc DaPlex-API. Trên cùng là entry point main.ts (FastifyAdapter + ValidationPipe + CORS + fastify-multipart + fastify-cookie). Tầng giữa: AppModule chứa AppRoutingModule (17 resource modules, prefix /api) và AppSocketModule (WsAdminGateway). Bên trái AppModule: 3 Redis connections (REDIS_URL → RedisCacheModule, REDIS_2ND_URL → Redis2ndCacheModule, REDIS_QUEUE_URL → BullMQ + RedisPubSubModule, REDIS_IO_URL → Socket.IO adapter). Bên phải: Dual MongoDB (DATABASE_A → 16+ collections, DATABASE_B → AuditLog + Notification). Tầng dưới: Common Modules (external storage, email, permissions, rate-limit). Mũi tên từ 4 BullMQ queues (H264/H265/VP9/AV1 transcode + result queue) sang Transcoder service.
+    Sơ đồ kiến trúc DaPlex-API. Trên cùng là entry point main.ts (FastifyAdapter + ValidationPipe + CORS + fastify-multipart + fastify-cookie). Tầng giữa: AppModule chứa AppRoutingModule (17 resource modules, prefix /api) và AppSocketModule (WsAdminGateway). Bên trái AppModule: 4 Redis connections (REDIS_URL → RedisCacheModule, REDIS_2ND_URL → Redis2ndCacheModule, REDIS_QUEUE_URL → BullMQ + RedisPubSubModule, REDIS_IO_URL → Socket.IO adapter). Bên phải: Dual MongoDB (DATABASE_A → 16+ collections, DATABASE_B → AuditLog + Notification). Tầng dưới: Common Modules (external storage, email, permissions, rate-limit). Mũi tên từ 4 BullMQ queues (H264/H265/VP9/AV1 transcode + result queue) sang Transcoder service.
   nodes:
     - main.ts → FastifyAdapter (:3000)
     - main.ts → ValidationPipe (whitelist, stopAtFirstError, custom exceptionFactory)
