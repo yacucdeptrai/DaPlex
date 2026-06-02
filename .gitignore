@@ -1,6 +1,7 @@
 # Umbrella repo — do not track auxiliary tooling and large binaries at root
 .agent/
 .claude/
+.run-logs/
 .cursor/
 .mcp_data/
 .understand-anything/
