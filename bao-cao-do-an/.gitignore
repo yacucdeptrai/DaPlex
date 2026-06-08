@@ -12,3 +12,6 @@ FORMAT.md
 # Build artifacts
 output/
 typst/**/*.pdf
+
+# Ignore this file itself
+.gitignore
